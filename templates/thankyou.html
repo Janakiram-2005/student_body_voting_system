@@ -1,0 +1,41 @@
+<!-- templates/thankyou.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Thank You for Voting</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f6fc;
+      text-align: center;
+      padding-top: 100px;
+    }
+    .box {
+      background: white;
+      display: inline-block;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #2ecc71;
+    }
+    p {
+      margin-top: 15px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Thank You for Voting!</h2>
+    <p>Redirecting back to verification page in 5 seconds...</p>
+    <script>
+      setTimeout(() => {
+        window.location.href = "/verify";
+      }, 5000);
+    </script>
+  </div>      
+</body>
+</html>

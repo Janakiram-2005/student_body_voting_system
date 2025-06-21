@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Candidate Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e6f2ff;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0077cc;
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .signout-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+        .tab {
+            margin: 5px 10px;
+            padding: 10px 20px;
+            background: #0099ff;
+            color: white;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        .tab:hover, .active-tab {
+            background-color: #005c99;
+        }
+        .content {
+            max-width: 700px;
+            margin: 40px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #005c99;
+        }
+    </style>
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.content').forEach(div => div.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active-tab'));
+
+            document.getElementById(tabId).style.display = 'block';
+            document.getElementById(tabId + '-tab').classList.add('active-tab');
+
+            localStorage.setItem("candidate_current_tab", tabId);
+
+            if (tabId === 'finalResults') fetchFinalResults();
+        }
+
+        function fetchResults(containerId) {
+            fetch('/get_live_results')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById(containerId);
+                    container.innerHTML = '';
+                    data.forEach(row => {
+                        container.innerHTML += `
+                            <div style="border:1px solid #ccc; margin:10px; padding:10px; border-radius:8px; background:#f9f9f9">
+                                <h3>${row.canname}</h3>
+                                <p>${row.candesc}</p>
+                                <strong>Votes: ${row.vote_count}</strong>
+                            </div>`;
+                    });
+                });
+        }
+
+        function fetchFinalResults() {
+            fetch('/get_final_results')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById("finalResultsContainer");
+                    container.innerHTML = '';
+                    if (data.approved && data.results.length > 0) {
+                        const winner = data.results.reduce((max, current) =>
+                            current.vote_count > max.vote_count ? current : max
+                        );
+                        container.innerHTML = `
+                            <div style="border:2px solid #28a745; margin:10px; padding:15px; border-radius:10px; background:#eaffea">
+                                <h2 style="color:#28a745;">🏆 Winner: ${winner.canname}</h2>
+                                <p>${winner.candesc}</p>
+                                
+                            </div>`;
+                    } else {
+                        container.innerHTML = "<p style='color:red; font-weight:bold;'>Final results not released yet or not approved.</p>";
+                    }
+                });
+        }
+
+        function updateStatusText(status) {
+            const msg = document.getElementById("candidateStatusMessage");
+            const statusMap = {
+                'not_started': 'Voting has not started yet.',
+                'started': 'Voting is currently ongoing.',
+                'ended': 'Voting has ended. Awaiting final results.',
+                'final_released': 'Final results have been released.'
+            };
+            msg.textContent = statusMap[status] || 'Status unknown.';
+        }
+
+        function confirmDrop() {
+            if (confirm("Are you sure you want to drop out? This action cannot be undone.")) {
+                document.getElementById("dropForm").submit();
+            }
+        }
+
+        window.onload = () => {
+            const lastTab = localStorage.getItem("candidate_current_tab") || 'candidateInfo';
+            showTab(lastTab);
+            fetchResults('liveResultsContent');
+            updateStatusText("{{ voting_status }}");
+            setInterval(() => {
+                fetchResults('liveResultsContent');
+                fetch("/get_voting_status")
+                    .then(res => res.json())
+                    .then(data => updateStatusText(data.status));
+                fetchFinalResults();
+            }, 60000);
+        };
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h2>Candidate Dashboard</h2>
+        <div>
+            Welcome, <b>{{ candidate.canname }}</b>
+            <form action="{{ url_for('candidate_logout') }}" method="post" style="display:inline;">
+<button type="submit" class="signout-button" onclick="localStorage.clear()">Sign Out</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab" id="candidateInfo-tab" onclick="showTab('candidateInfo')">Info</div>
+        <div class="tab" id="liveResults-tab" onclick="showTab('liveResults')">Live Results</div>
+        <div class="tab" id="finalResults-tab" onclick="showTab('finalResults')">Final Results</div>
+        <div class="tab" id="settings-tab" onclick="showTab('settings')">Settings</div>
+    </div>
+
+    <div class="content" id="candidateInfo">
+        <center><h3>Candidate Info</h3></center>
+        <p><strong>Name:</strong> {{ candidate.canname }}</p>
+        <p><strong>Email:</strong> {{ candidate.canemail }}</p>
+        <p><strong>Phone:</strong> {{ candidate.canphno }}</p>
+        <p><strong>Description:</strong> {{ candidate.candesc }}</p>
+    </div>
+
+    <div class="content" id="liveResults">
+        <center><h3>Live Voting Results</h3>
+        <div id="candidateStatusMessage" style="font-weight: bold; margin-bottom: 15px;"></div></center>
+        <div id="liveResultsContent">Loading live results...</div>
+    </div>
+
+    <div class="content" id="finalResults">
+        <center><h3>Final Result</h3>
+        <div id="finalResultsContainer"></center>
+            <p>Loading final results...</p>
+        </div>
+    </div>
+
+    <div class="content" id="settings">
+        <center><h3>Settings</h3></center>
+        <form action="/update_candidate_info" method="post">
+            <h4>Edit Info</h4>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" name="canname" value="{{ candidate.canname }}" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="canemail" value="{{ candidate.canemail }}" required>
+            </div>
+            <div class="form-group">
+                <label>Phone:</label>
+                <input type="text" name="canphno" value="{{ candidate.canphno }}" required>
+            </div>
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea name="candesc" required>{{ candidate.candesc }}</textarea>
+            </div>
+            <button type="submit">Update Info</button>
+        </form>
+
+        <hr>
+
+        <form action="/change_candidate_password" method="post">
+            <center><h4>Change Password</h4></center>
+            <div class="form-group">
+                <label>Current Password:</label>
+                <input type="password" name="old_password" required>
+            </div>
+            <div class="form-group">
+                <label>New Password:</label>
+                <input type="password" name="new_password" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password:</label>
+                <input type="password" name="confirm_password" required>
+            </div>
+            <button type="submit">Change Password</button>
+        </form>
+
+        <hr>
+
+        <form id="dropForm" action="/drop_candidate" method="post">
+            <center><h4>Drop From Voting</h4></center>
+            <p style="color:red">Once you drop out, your data will be permanently deleted.</p>
+            <button type="button" onclick="confirmDrop()">Drop From Voting</button>
+        </form>
+    </div>
+
+    <footer style="background-color: #003366; color: white; padding: 20px 30px; display: flex; justify-content: space-between; flex-wrap: wrap;">
+        <div>
+            <h3 style="margin: 0;"><a href="index.html" style="color: white; text-decoration: none;">🗳️ SBVS Voting Portal</a></h3>
+            <p style="margin: 5px 0;">📸 <a href="https://www.instagram.com/janakiram_reddy_2005" target="_blank" style="color: #00acee;">INSTAGRAM</a></p>
+            <p>📞 +91-9182040905</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0;">© 2025 SBVS. All Rights Reserved.</p>
+            <div style="margin-top: 10px;">
+                <a href="help.html" style="margin-right: 10px; color: white; background-color: #0077cc; padding: 5px 10px; border-radius: 5px; text-decoration: none;">Help</a>
+                <a href="support.html" style="margin-right: 10px; color: white; background-color: #28a745; padding: 5px 10px; border-radius: 5px; text-decoration: none;">Support</a>
+                <a href="complaints.html" style="color: white; background-color: #dc3545; padding: 5px 10px; border-radius: 5px; text-decoration: none;">Complaints</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

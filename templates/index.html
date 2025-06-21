@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Body Voting System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #e9f0f4;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: #ffffff;
+      width: 90%;
+      max-width: 900px;
+      min-height: 90vh;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 32px;
+      margin-bottom: 25px;
+    }
+
+    p {
+      font-size: 17px;
+      color: #555;
+      line-height: 1.7;
+      text-align: justify;
+      margin: 10px 30px;
+    }
+
+    .login-button {
+      text-align: center;
+      margin: 40px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .login-button a {
+      text-decoration: none;
+      background: #3498db;
+      color: white;
+      padding: 14px 35px;
+      border-radius: 10px;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: 0.3s ease-in-out;
+    }
+
+    .login-button a:hover {
+      background: #2c80b4;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 14px;
+      color: #999;
+      margin-top: 20px;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <h1>STUDENT BODY VOTING SYSTEM</h1>
+      <p>
+        The Student Body Voting System is designed to provide a secure and transparent platform for students to digitally elect their representatives. 
+        It includes a robust verification system to ensure voting integrity, real-time result updates, and prevents multiple votes by the same individual. 
+        Admins can easily manage candidates and voters, while all participants experience a user-friendly interface. 
+        This system was proudly created by Janakiram as a part of VFSTR's student projects to enhance democratic practices in campus life.
+      </p>
+
+      <div class="login-button">
+        <a href="/adminlogin">Login as Admin</a>
+        <a href="/candidatelogin">Login as Candidate</a>
+        <a href="/verify">Login as Voter</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      &copy; 2025 by @VFSTR. All rights reserved.
+    </div>
+  </div>
+  
+</body>
+</html>

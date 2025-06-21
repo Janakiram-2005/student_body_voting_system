@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#e6f2ff; margin:0; padding:0; }
+        .header { display:flex; justify-content:space-between; align-items:center; background:#0077cc; color:white; padding:15px 30px; }
+        .tabs { display:flex; justify-content:center; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex-wrap:wrap; padding:15px 0; }
+        .tab { margin:5px 10px; padding:10px 20px; background:#0099ff; color:white; border-radius:30px; cursor:pointer; font-weight:bold; }
+        .tab:hover, .active-tab { background:#005c99; }
+        .content { max-width:800px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 0 15px rgba(0,0,0,0.1); display:none; }
+        input, textarea, button { font-family:inherit; }
+        input, textarea { width:100%; padding:8px; margin:8px 0; border:1px solid #ccc; border-radius:4px; }
+        button { background:#0077cc; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:bold; }
+        button:hover { background:#005c99; }
+        .signout-btn { background:#ff4d4d; }
+        table { width:100%; border-collapse:collapse; margin-top:15px; }
+        th, td { border:1px solid #aaa; padding:10px; text-align:left; }
+        th { background:#0077cc; color:white; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>Admin Dashboard</h2>
+    <div>
+        Welcome, <b>{{ admin_name }}</b>
+        <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab" onclick="showContent('addCandidate')">Add Candidate</div>
+    <div class="tab" onclick="showContent('addVoter')">Add Voter</div>
+    <div class="tab" onclick="showContent('votingControl')">Voting Control</div>
+    <div class="tab" onclick="showContent('liveResults')">Live Results</div>
+    <div class="tab" onclick="showContent('finalResults')">Final Results</div>
+    <div class="tab" onclick="showContent('complaintsTab')">Complaints</div>
+</div>
+
+<div class="content" id="addCandidate">
+    <center><h3>Add Candidate</h3></center>
+    <form id="candidateForm">
+        <input type="text" name="canname" placeholder="Name" required>
+        <input type="email" name="canemail" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="canphno" placeholder="Phone (10 digits)" required pattern="[0-9]{10}">
+        <textarea name="candesc" placeholder="Description"></textarea>
+        <center><button type="submit">Add Candidate</button></center>
+    </form>
+</div>
+
+<div class="content" id="addVoter">
+    <center><h3>Add Voter</h3></center>
+    <form id="voterForm">
+        <input type="text" name="regno" placeholder="Registration Number" required>
+        <center><button type="submit">Add Voter</button></center>
+    </form>
+</div>
+
+<div class="content" id="votingControl">
+    <center><h3>Voting Control</h3>
+    <button onclick="startVoting()">Start Voting</button>
+    <button onclick="stopVoting()">Stop Voting</button></center>
+</div>
+
+<div class="content" id="liveResults">
+    <center><h3>Live Results</h3>
+    <div id="statusMessage" style="font-weight:bold;"></div></center>
+    <table>
+        <thead><tr><th>Name</th><th>Description</th><th>Votes</th></tr></thead>
+        <tbody id="liveResultsTableBody"></tbody>
+    </table>
+</div>
+
+<div class="content" id="finalResults">
+    <center><h3>Final Results</h3>
+    <div id="finalApprovalControls"></div></center>
+    <table>
+        <thead><tr><th>Name</th><th>Description</th><th>Total Votes</th></tr></thead>
+        <tbody id="finalResultsTableBody"></tbody>
+    </table>
+</div>
+
+<div class="content" id="complaintsTab">
+    <center><h3>User Complaints</h3></center>
+    <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Reply</th><th>Delete</th></tr></thead>
+        <tbody id="complaintsTableBody"></tbody>
+    </table>
+</div>
+
+<script>
+function showContent(id) {
+    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active-tab'));
+    document.getElementById(id).style.display = 'block';
+    document.querySelector(`.tab[onclick="showContent('${id}')"]`).classList.add('active-tab');
+    localStorage.setItem('admin_current_tab', id);
+}
+
+function signOut() {
+    localStorage.removeItem('admin_current_tab');
+    fetch('/logout', { method:'POST' }).then(() => window.location.href='/adminlogin');
+}
+
+async function checkEmail(email) {
+    const r = await fetch(`/check_candidate_email?email=${encodeURIComponent(email)}`);
+    return (await r.json()).exists;
+}
+
+document.getElementById('candidateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(this).entries());
+    if (await checkEmail(data.canemail)) return alert('Email already used.');
+    const res = await fetch('/addcandidates', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+    });
+    const json = await res.json();
+    alert(json.message);
+    this.reset();
+});
+
+document.getElementById('voterForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const regno = new FormData(this).get('regno');
+    const res = await fetch('/addvoter', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({regno})
+    });
+    const json = await res.json();
+    alert(json.message);
+    this.reset();
+});
+
+function startVoting() {
+    fetch('/toggle_voting', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'status=started' })
+    .then(() => { alert('Voting started'); fetchLive(); });
+}
+
+function stopVoting() {
+    fetch('/toggle_voting', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'status=ended' })
+    .then(() => { alert('Voting ended'); fetchFinal(); });
+}
+
+function fetchLive() {
+    fetch('/get_live_results').then(r=>r.json()).then(data=> {
+        const tbody = document.getElementById('liveResultsTableBody');
+        tbody.innerHTML = data.map(r=>`<tr><td>${r.canname}</td><td>${r.candesc}</td><td>${r.vote_count}</td></tr>`).join('');
+    });
+    fetch('/get_voting_status').then(r=>r.json()).then(j=>
+        document.getElementById('statusMessage').innerText = {
+            'not_started':'Not started','started':'Ongoing','ended':'Ended'
+        }[j.status] || 'Unknown'
+    );
+}
+
+function fetchFinal() {
+    fetch('/calculate_final_results').then(r=>r.json()).then(j=>{
+        const tb = document.getElementById('finalResultsTableBody');
+        tb.innerHTML = j.results.map(r=>
+            `<tr ${r.is_winner?'style="background:#d4edda;font-weight:bold"':''}><td>${r.canname}</td><td>${r.candesc}</td><td>${r.final_votes}</td></tr>`
+        ).join('');
+        const ctrl = document.getElementById('finalApprovalControls');
+        ctrl.innerHTML = j.results_approved ? '<p style="color:green"><b>Approved</b></p>' 
+        : '<button onclick="approve()">✓ Approve</button><button onclick="reject()">✗ Reject</button>';
+    });
+}
+
+function approve(){ fetch('/approve_results',{method:'POST'}).then(fetchFinal);}
+function reject(){ fetch('/reject_results',{method:'POST'}).then(fetchFinal); }
+
+function fetchComplaints() {
+    fetch('/get_complaints').then(r=>r.json()).then(arr=>{
+        document.getElementById('complaintsTableBody').innerHTML = arr.map(c=>
+            `<tr><td>${c.name}</td><td>${c.email}</td><td>${c.message}</td>
+             <td><a href="mailto:${c.email}"><button>Reply</button></a></td>
+             <td><button onclick="deleteComplaint(${c.id})">Delete</button></td></tr>`
+        ).join('');
+    });
+}
+
+function deleteComplaint(id) {
+    if (!confirm('Sure to delete?')) return;
+    fetch(`/delete_complaint/${id}`,{method:'POST'}).then(fetchComplaints);
+}
+
+window.onload = () => {
+    showContent(localStorage.getItem('admin_current_tab') || 'addCandidate');
+    fetchLive(); fetchFinal(); fetchComplaints();
+    setInterval(fetchLive, 60000);
+};
+</script>
+</body>
+</html>

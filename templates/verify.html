@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Voter Verification</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f6fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .verify-box {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 400px;
+    }
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 16px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .message {
+      margin-top: 15px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-box">
+    <h2>Voter Verification</h2>
+    <form method="POST" action="/verify_voter">
+      <input type="text" name="regno" placeholder="Enter Registration Number" required>
+      <button type="submit">Verify</button>
+      {% if error %}
+        <div class="message">{{ error }}</div>
+      {% endif %}
+    </form>   
+  </div>
+  
+</body>
+</html>

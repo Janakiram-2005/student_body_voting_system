@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Candidate Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      margin: 8px 5px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .login-btn {
+      background-color: #2ecc71;
+    }
+
+    .login-btn:hover {
+      background-color: #27ae60;
+    }
+
+    .back-btn {
+      background-color: #95a5a6;
+    }
+
+    .back-btn:hover {
+      background-color: #7f8c8d;
+    }
+
+    .home-btn {
+      background-color: #16a085;
+    }
+
+    .home-btn:hover {
+      background-color: #138d75;
+    }
+
+    .forgot-link {
+      margin-top: 12px;
+      display: block;
+      font-size: 14px;
+    }
+
+    .forgot-link a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+
+    .forgot-link a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      color: red;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Candidate Login</h2>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <form action="/candidatelogin" method="POST">
+      <input type="text" name="email" placeholder="Candidate Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <div>
+        <button type="submit" class="btn login-btn">Login</button>
+        <button type="button" class="btn back-btn" onclick="history.back()">← Go Back</button>
+        <button type="button" class="btn home-btn" onclick="window.location.href='/'">← Home</button>
+      </div>
+    </form>
+    <div class="forgot-link">
+      <a href="/forgot_password">Forgot Password?</a>
+    </div>
+  </div>
+</body>
+</html>

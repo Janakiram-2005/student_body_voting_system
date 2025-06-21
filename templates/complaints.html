@@ -1,0 +1,83 @@
+<!-- complaints.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Submit a Complaint</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: #fff;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0077cc;
+      margin-bottom: 20px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005c99;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Submit Your Complaint</h2>
+    <form id="complaintForm">
+    <input type="text" name="name" placeholder="Your Name" required><br>
+    <input type="email" name="email" placeholder="Your Email" required><br>
+    <textarea name="message" placeholder="Your Complaint" required></textarea><br>
+    <button type="submit">Submit Complaint</button>
+</form>
+
+<script>
+document.getElementById("complaintForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch("/submit_complaint", {
+        method: "POST",
+        body: formData
+    }).then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert(data.message); // Show popup
+            document.getElementById("complaintForm").reset(); // Reset form
+        } else {
+            alert("Something went wrong.");
+        }
+    }).catch(err => {
+        console.error(err);
+        alert("Error sending complaint.");
+    });
+});
+</script>
+
+  </div>
+</body>
+</html>

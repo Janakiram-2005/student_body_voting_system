@@ -10,13 +10,13 @@ CORS(app)
 bcrypt = Bcrypt(app)
 
 # ------------------ DB Connection ------------------
-def get_db_connection():
-    return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='janakiram2005',
-        database='sbvs'
-    )
+# def get_db_connection():
+#     return mysql.connector.connect(
+#         host='localhost',
+#         user='root',
+#         password='janakiram2005',
+#         database='sbvs'
+#     )
 
 # ------------------ HTML Routes ------------------
 @app.route("/")
@@ -632,11 +632,13 @@ app.secret_key = os.environ.get("SECRET_KEY", "fallbacksecret")
 
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
+        host="sql12.freesqldatabase.com",
+        user="sql12786088",
+        password="SYnET3FL9t",
+        database="sql12786088",
+        port=3306
     )
+
 
 
 # ------------------ Run App ------------------

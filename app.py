@@ -625,6 +625,19 @@ def add_no_cache_headers(response):
     response.headers["Expires"] = "0"
     return response
 
+import os
+import mysql.connector
+
+app.secret_key = os.environ.get("SECRET_KEY", "fallbacksecret")
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.environ.get("DB_HOST"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        database=os.environ.get("DB_NAME")
+    )
+
 
 # ------------------ Run App ------------------
 if __name__ == "__main__":

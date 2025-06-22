@@ -639,6 +639,45 @@ def get_db_connection():
         port=3306
     )
 
+@app.route('/get_all_candidates')
+def get_all_candidates():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM candidates")
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(result)
+
+@app.route('/get_all_voters')
+def get_all_voters():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM voters")
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(result)
+
+@app.route('/delete_candidate/<int:canid>', methods=['POST'])
+def delete_candidate(canid):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM candidates WHERE canid = %s", (canid,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return '', 204
+
+@app.route('/delete_voter/<int:voterid>', methods=['POST'])
+def delete_voter(voterid):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM voters WHERE voterid = %s", (voterid,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return '', 204
 
 
 # ------------------ Run App ------------------

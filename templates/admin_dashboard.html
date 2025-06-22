@@ -18,7 +18,66 @@
         table { width:100%; border-collapse:collapse; margin-top:15px; }
         th, td { border:1px solid #aaa; padding:10px; text-align:left; }
         th { background:#0077cc; color:white; }
-    </style>
+
+        .expand-btn { cursor:pointer; font-size:16px; transition: transform 0.3s ease; }
+        .expanded .expand-btn { transform: rotate(90deg); }
+        .expand-options { display:none; background:#f9f9f9; padding:10px; animation:fadeLeft 0.4s ease-in; }
+        .expanded + .expand-options { display:table-row; }
+        @keyframes fadeLeft {
+            from { opacity:0; transform:translateX(-20px); }
+            to { opacity:1; transform:translateX(0); }
+        }
+        .card-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 15px;
+    color: #0077cc;
+    background: #dfefff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+}
+
+.card-header-row span {
+    flex: 1;
+    text-align: left;
+}
+
+.card-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    gap: 10px;
+}
+
+.card-info {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.card-info span {
+    flex: 1;
+    white-space: nowrap;
+}
+
+
+
+@media (max-width: 600px) {
+    .card-header-row, .card-item {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+}
+</style>
 </head>
 <body>
 
@@ -37,8 +96,11 @@
     <div class="tab" onclick="showContent('liveResults')">Live Results</div>
     <div class="tab" onclick="showContent('finalResults')">Final Results</div>
     <div class="tab" onclick="showContent('complaintsTab')">Complaints</div>
+    <div class="tab" onclick="showContent('allCandidates')">All Candidates</div>
+    <div class="tab" onclick="showContent('allVoters')">All Voters</div>
 </div>
 
+<!-- Forms -->
 <div class="content" id="addCandidate">
     <center><h3>Add Candidate</h3></center>
     <form id="candidateForm">
@@ -59,12 +121,14 @@
     </form>
 </div>
 
+<!-- Voting Controls -->
 <div class="content" id="votingControl">
     <center><h3>Voting Control</h3>
     <button onclick="startVoting()">Start Voting</button>
     <button onclick="stopVoting()">Stop Voting</button></center>
 </div>
 
+<!-- Live & Final Results -->
 <div class="content" id="liveResults">
     <center><h3>Live Results</h3>
     <div id="statusMessage" style="font-weight:bold;"></div></center>
@@ -83,6 +147,7 @@
     </table>
 </div>
 
+<!-- Complaints -->
 <div class="content" id="complaintsTab">
     <center><h3>User Complaints</h3></center>
     <table>
@@ -90,6 +155,43 @@
         <tbody id="complaintsTableBody"></tbody>
     </table>
 </div>
+
+<!-- All Candidates -->
+<div class="content" id="allCandidates">
+    <center><h3>All Candidates</h3></center>
+    <input type="text" id="searchCandidates" class="search-input" placeholder="Search by name or email">
+
+    <!-- 🔽 Paste this just below the search box -->
+    <div class="card-header-row">
+        <span>Name</span>
+        <span>Email</span>
+        <span>Phone</span>
+        <span style="width: 60px;"></span> <!-- space for arrow/delete -->
+    </div>
+
+    <!-- Candidate list will populate here -->
+    <div class="card-list" id="candidatesList"></div>
+</div>
+
+
+<!-- All Voters -->
+<!-- All Voters -->
+<div class="content" id="allVoters">
+    <center><h3>All Voters</h3></center>
+    <input type="text" id="searchVoters" class="search-input" placeholder="Search by registration number">
+
+    <div class="card-header-row">
+        <span>Registration No.</span>
+        <span style="width: 60px;"></span>
+    </div>
+
+    <!-- ✅ Add this missing container -->
+    <div class="card-list" id="votersList"></div>
+</div>
+
+</div>
+
+
 
 <script>
 function showContent(id) {
@@ -185,9 +287,96 @@ function deleteComplaint(id) {
     fetch(`/delete_complaint/${id}`,{method:'POST'}).then(fetchComplaints);
 }
 
+
+
+function fetchAllCandidates() {
+    fetch('/get_all_candidates').then(r => r.json()).then(data => {
+        const container = document.getElementById('candidatesList');
+        container.innerHTML = '';
+
+        data.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'card-item';
+            item.id = `cand-${c.canid}`;
+            item.innerHTML = `
+                <div class="card-info">
+                    <span>${c.canname}</span>
+                    <span>${c.canemail}</span>
+                    <span>${c.canphno}</span>
+                </div>
+                <div class="card-actions">
+                    <button onclick="confirmDeleteCandidate(${c.canid})">Delete</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+        document.getElementById('searchCandidates').oninput = function () {
+            const val = this.value.toLowerCase();
+            document.querySelectorAll('#candidatesList .card-item').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
+            });
+        };
+    });
+}
+
+
+function fetchAllVoters() {
+    fetch('/get_all_voters').then(r => r.json()).then(data => {
+        const container = document.getElementById('votersList');
+        container.innerHTML = '';
+
+        data.forEach(v => {
+            const item = document.createElement('div');
+            item.className = 'card-item';
+            item.id = `voter-${v.voterid}`;
+            item.innerHTML = `
+                <div class="card-info">
+                    <span>${v.voterreg}</span>
+                </div>                
+                <div class="card-actions">
+                    <button onclick="confirmDeleteVoter(${v.voterid})">Delete</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+        document.getElementById('searchVoters').oninput = function () {
+            const val = this.value.toLowerCase();
+            document.querySelectorAll('#votersList .card-item').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
+            });
+        };
+    });
+}
+
+
+function toggleAction(elem) {
+    const card = elem.parentElement;
+    card.classList.toggle('active');
+    elem.classList.toggle('rotate');
+}
+
+function toggleExpand(id) {
+    document.getElementById(id).classList.toggle('expanded');
+}
+
+function confirmDeleteCandidate(id) {
+    if (confirm('Are you sure to delete this candidate?')) {
+        fetch(`/delete_candidate/${id}`, { method: 'POST' }).then(fetchAllCandidates);
+    }
+}
+
+function confirmDeleteVoter(id) {
+    if (confirm('Are you sure to delete this voter?')) {
+        fetch(`/delete_voter/${id}`, { method: 'POST' }).then(fetchAllVoters);
+    }
+}
+
 window.onload = () => {
     showContent(localStorage.getItem('admin_current_tab') || 'addCandidate');
     fetchLive(); fetchFinal(); fetchComplaints();
+    fetchAllCandidates(); fetchAllVoters();
     setInterval(fetchLive, 60000);
 };
 </script>

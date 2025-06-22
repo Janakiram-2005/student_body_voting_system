@@ -81,6 +81,133 @@
         button:hover {
             background-color: #005c99;
         }
+        .settings-section h4 {
+    background: #5cace6;
+    color: white;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 20px;
+    transition: background 0.3s;
+}
+
+.settings-section h4:hover {
+    background: #19577e;
+}
+
+.settings-section form {
+    background: #f9f9f9;
+    padding: 20px;
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}.candidate-profile-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-top: 30px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  background: #0077cc;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-text h2 {
+  margin: 0;
+  color: #333;
+}
+
+.profile-text p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.profile-actions {
+  margin-top: 10px;
+}
+
+.profile-actions button {
+  background: #0077cc;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.profile-actions button:hover {
+  background: #005a99;
+}
+
+.edit-form-section {
+  margin-top: 20px;
+  display: none;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.edit-form-section input,
+.edit-form-section textarea {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.edit-form-section button {
+  background: #0077cc;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
     </style>
     <script>
         function showTab(tabId) {
@@ -150,6 +277,14 @@
                 document.getElementById("dropForm").submit();
             }
         }
+        function toggleSection(header) {
+    const form = header.nextElementSibling;
+    form.classList.toggle('hidden');
+    header.textContent = header.textContent.includes('⯆')
+        ? header.textContent.replace('⯆', '⯅')
+        : header.textContent.replace('⯅', '⯆');
+}
+
 
         window.onload = () => {
             const lastTab = localStorage.getItem("candidate_current_tab") || 'candidateInfo';
@@ -164,6 +299,13 @@
                 fetchFinalResults();
             }, 60000);
         };
+    
+function toggleEditForm() {
+  const section = document.getElementById('editFormSection');
+  section.style.display = section.style.display === 'block' ? 'none' : 'block';
+}
+
+
     </script>
 </head>
 <body>
@@ -185,11 +327,49 @@
     </div>
 
     <div class="content" id="candidateInfo">
-        <center><h3>Candidate Info</h3></center>
-        <p><strong>Name:</strong> {{ candidate.canname }}</p>
+       <div class="candidate-profile-card">
+  <div class="profile-info">
+    <div class="profile-left">
+      <div class="profile-avatar">
+        {{ candidate.canname[0]|upper }}
+      </div>
+      <div class="profile-text">
+        <h2>{{ candidate.canname }}</h2>
         <p><strong>Email:</strong> {{ candidate.canemail }}</p>
         <p><strong>Phone:</strong> {{ candidate.canphno }}</p>
-        <p><strong>Description:</strong> {{ candidate.candesc }}</p>
+        <p><strong>About:</strong> {{ candidate.candesc }}</p>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button onclick="toggleEditForm()">✏️ Edit Info</button>
+    </div>
+  </div>
+
+  <div class="edit-form-section" id="editFormSection">
+    <form action="/update_candidate_info" method="post">
+      <div class="form-group">
+        <label>Name:</label>
+        <input type="text" name="canname" value="{{ candidate.canname }}" required>
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" name="canemail" value="{{ candidate.canemail }}" required>
+      </div>
+      <div class="form-group">
+        <label>Phone:</label>
+        <input type="text" name="canphno" value="{{ candidate.canphno }}" required>
+      </div>
+      <div class="form-group">
+        <label>Description:</label>
+        <textarea name="candesc" required>{{ candidate.candesc }}</textarea>
+      </div>
+      <button type="submit">Update Info</button>
+    </form>
+  </div>
+</div>
+
+</div>
+
     </div>
 
     <div class="content" id="liveResults">
@@ -205,10 +385,12 @@
         </div>
     </div>
 
-    <div class="content" id="settings">
-        <center><h3>Settings</h3></center>
-        <form action="/update_candidate_info" method="post">
-            <h4>Edit Info</h4>
+   <div class="content" id="settings">
+    <center><h3>Settings</h3></center>
+
+    <div class="settings-section">
+        <h4 onclick="toggleSection(this)">Edit Info ⯆</h4>
+        <form action="/update_candidate_info" method="post" class="hidden">
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" name="canname" value="{{ candidate.canname }}" required>
@@ -227,11 +409,11 @@
             </div>
             <button type="submit">Update Info</button>
         </form>
+    </div>
 
-        <hr>
-
-        <form action="/change_candidate_password" method="post">
-            <center><h4>Change Password</h4></center>
+    <div class="settings-section">
+        <h4 onclick="toggleSection(this)">Change Password ⯆</h4>
+        <form action="/change_candidate_password" method="post" class="hidden">
             <div class="form-group">
                 <label>Current Password:</label>
                 <input type="password" name="old_password" required>
@@ -246,15 +428,16 @@
             </div>
             <button type="submit">Change Password</button>
         </form>
+    </div>
 
-        <hr>
-
-        <form id="dropForm" action="/drop_candidate" method="post">
-            <center><h4>Drop From Voting</h4></center>
+    <div class="settings-section">
+        <h4 onclick="toggleSection(this)">Drop From Voting ⯆</h4>
+        <form id="dropForm" action="/drop_candidate" method="post" class="hidden">
             <p style="color:red">Once you drop out, your data will be permanently deleted.</p>
             <button type="button" onclick="confirmDrop()">Drop From Voting</button>
         </form>
     </div>
+</div>
 
     <footer style="background-color: #003366; color: white; padding: 20px 30px; display: flex; justify-content: space-between; flex-wrap: wrap;">
         <div>
